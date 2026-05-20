@@ -38,4 +38,8 @@ go.work.sum
 
 # Logs
 *.log
+
+# AI generated files
+CLAUDE.md
+
 EOF
