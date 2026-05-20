@@ -3,11 +3,11 @@ package database
 import (
 	"database/sql"
 
-	_ "github.com/mattn/go-sqlite3"
+	_"github.com/jackc/pgx/v5/stdlib"
 )
 
-func New(dbPath string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dbPath)
+func New(databaseURL string) (*sql.DB, error) {
+	db, err := sql.Open("pgx", databaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -25,11 +25,11 @@ func New(dbPath string) (*sql.DB, error) {
 
 func createTables(db *sql.DB) error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS transactions (
-		id       INTEGER PRIMARY KEY AUTOINCREMENT,
-		amount   REAL    NOT NULL,
-		category TEXT    NOT NULL,
-		date     DATETIME NOT NULL,
-		type     TEXT    NOT NULL
+		id       BIGSERIAL 		PRIMARY KEY,
+		amount   NUMERIC(12, 2) NOT NULL,
+		category TEXT    		NOT NULL,
+		date     TIMESTAMPTZ 	NOT NULL,
+		type     TEXT    		NOT NULL
 	)`)
 	return err
 }
