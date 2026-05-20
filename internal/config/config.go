@@ -1,22 +1,24 @@
 package config
 
-import (
-	"database/sql"
+import "os"
 
-	_ "github.com/mattn/go-sqlite3"
-)
+type Config struct {
+	ServerPort string
+	DBPath     string
+	Env        string
+}
 
-var DB *sql.DB
+func Load() (*Config, error) {
+	return &Config{
+		ServerPort: getEnv("SERVER_PORT", "8090"),
+		DBPath:     getEnv("DB_PATH", "./transactions.db"),
+		Env:        getEnv("ENV", "development"),
+	}, nil
+}
 
-func InitDB() {
-	var err error
-	DB, err = sql.Open("sqlite3", "./transactions.db")
-	if err != nil {
-		panic(err)
+func getEnv(key, fallback string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
 	}
-
-	err = DB.Ping()
-	if err != nil {
-		panic(err)
-	}
+	return fallback
 }

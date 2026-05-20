@@ -1,21 +1,35 @@
 package main
 
 import (
+	"log"
+
 	"github.com/filipbabicdev/finance-tracker-api/internal/config"
+	"github.com/filipbabicdev/finance-tracker-api/internal/database"
 	"github.com/filipbabicdev/finance-tracker-api/internal/handler"
+	"github.com/filipbabicdev/finance-tracker-api/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	config.InitDB()
-	defer config.DB.Close()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("config error: %v", err)
+	}
+
+	db, err := database.New(cfg.DBPath)
+	if err != nil {
+		log.Fatalf("database error: %v", err)
+	}
+	defer db.Close()
+
+	transactionRepo := repository.NewTransactionRepo(db)
+	transactionHandler := handler.NewTransactionHandler(transactionRepo)
 
 	r := gin.Default()
-	r.GET("/transactions", handler.ReadTransactions)
-	r.POST("/transactions", handler.CreateTransaction)
-	r.PUT("/transactions/:id", handler.UpdateTransaction)
-	r.DELETE("/transactions/:id", handler.DeleteTransaction)
+	handler.SetupRoutes(r, transactionHandler)
 
-	r.Run(":8090")
+	if err := r.Run(":" + cfg.ServerPort); err != nil {
+		log.Fatalf("server error: %v", err)
+	}
 }
