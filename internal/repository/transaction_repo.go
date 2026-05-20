@@ -15,17 +15,8 @@ func NewTransactionRepo(db *sql.DB) *TransactionRepo {
 }
 
 func (r *TransactionRepo) Create(t *model.Transaction) error {
-	query := "INSERT INTO transactions (amount, category, date, type) VALUES (?, ?, ?, ?)"
-	result, err := r.db.Exec(query, t.Amount, t.Category, t.Date, t.Type)
-	if err != nil {
-		return err
-	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		return err
-	}
-	t.ID = int(id)
-	return nil
+	query := "INSERT INTO transactions (amount, category, date, type) VALUES ($1, $2, $3, $4) RETURNING id"
+	return r.db.QueryRow(query, t.Amount, t.Category, t.Date, t.Type).Scan(&t.ID)
 }
 
 func (r *TransactionRepo) ReadAll() ([]model.Transaction, error) {
@@ -49,13 +40,13 @@ func (r *TransactionRepo) ReadAll() ([]model.Transaction, error) {
 }
 
 func (r *TransactionRepo) Update(id int, t *model.Transaction) error {
-	query := "UPDATE transactions SET amount=?, category=?, date=?, type=? WHERE id=?"
+	query := "UPDATE transactions SET amount=$1, category=$2, date=$3, type=$4 WHERE id=$5"
 	_, err := r.db.Exec(query, t.Amount, t.Category, t.Date, t.Type, id)
 	return err
 }
 
 func (r *TransactionRepo) Delete(id int) error {
-	query := "DELETE FROM transactions WHERE id=?"
+	query := "DELETE FROM transactions WHERE id=$1"
 	_, err := r.db.Exec(query, id)
 	return err
 }
