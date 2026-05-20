@@ -2,15 +2,27 @@ package database
 
 import (
 	"database/sql"
+	"time"
 
-	_"github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func New(databaseURL string) (*sql.DB, error) {
-	db, err := sql.Open("pgx", databaseURL)
+type Config struct {
+	DSN             string
+	MaxOpenConns    int
+	MaxIdleConns    int
+	ConnMaxLifetime int
+}
+
+func New(cfg Config) (*sql.DB, error) {
+	db, err := sql.Open("pgx", cfg.DSN)
 	if err != nil {
 		return nil, err
 	}
+
+	db.SetMaxOpenConns(cfg.MaxOpenConns)
+	db.SetMaxIdleConns(cfg.MaxIdleConns)
+	db.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime) * time.Minute)
 
 	if err = db.Ping(); err != nil {
 		return nil, err

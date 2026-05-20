@@ -17,7 +17,13 @@ func main() {
 		log.Fatalf("config error: %v", err)
 	}
 
-	db, err := database.New(cfg.DatabaseURL)
+	db, err := database.New(database.Config{
+		DSN:             cfg.DatabaseURL,
+		MaxOpenConns:    cfg.DBMaxOpenConns,
+		MaxIdleConns:    cfg.DBMaxIdleConns,
+		ConnMaxLifetime: cfg.DBConnMaxLifetime,
+	})
+
 	if err != nil {
 		log.Fatalf("database error: %v", err)
 	}
