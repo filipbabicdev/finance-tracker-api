@@ -3,16 +3,16 @@ package config
 import "os"
 
 type Config struct {
-	ServerPort string
-	DBPath     string
-	Env        string
+	ServerPort  string
+	DatabaseURL string
+	Env         string
 }
 
 func Load() (*Config, error) {
 	return &Config{
-		ServerPort: getEnv("SERVER_PORT", "8090"),
-		DBPath:     getEnv("DB_PATH", "./transactions.db"),
-		Env:        getEnv("ENV", "development"),
+		ServerPort:  getEnv("SERVER_PORT", "8090"),
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://finance:finance@localhost:5432/finance?sslmode=disable"),
+		Env:         getEnv("ENV", "development"),
 	}, nil
 }
 
