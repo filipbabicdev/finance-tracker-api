@@ -2,13 +2,18 @@
 
 A REST API for tracking personal financial transactions. Built in Go as a portfolio project to demonstrate idiomatic backend patterns (repository pattern, explicit dependency injection, proper money handling).
 
+**Live demo:** https://finance-tracker-api-hyek.onrender.com/transactions
+
+> Deployed on Render (Docker) with a managed PostgreSQL database on Neon.
+> Hosted on a free tier, so the first request after idle may take 30–50s to wake (cold start).
+
 ## Tech Stack
 
 - **Language**: Go 1.25
 - **Web framework**: [Gin](https://github.com/gin-gonic/gin)
 - **Database**: PostgreSQL 16 (via [pgx/v5](https://github.com/jackc/pgx))
 - **Monetary types**: [shopspring/decimal](https://github.com/shopspring/decimal)
-- **Infrastructure**: Docker + docker-compose
+- **Infrastructure**: Docker + docker-compose; deployed on Render with managed Postgres (Neon)
 
 ## Features
 
@@ -65,10 +70,11 @@ curl -X POST http://localhost:8090/transactions \
 
 ## Roadmap
 
+- [x] Deploy to Render with managed Postgres (Neon)
 - [ ] JWT authentication (next)
+- [ ] Input validation: constrain `type` to `income`/`expense` (DB `CHECK` + app-layer guard) and tighten `category`
 - [ ] Integration tests with [testcontainers-go](https://github.com/testcontainers/testcontainers-go)
 - [ ] gRPC service layer
-- [ ] Deploy to Render or Fly.io with managed Postgres
 
 ## Author
 
