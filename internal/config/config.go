@@ -16,13 +16,20 @@ type Config struct {
 
 func Load() (*Config, error) {
 	return &Config{
-		ServerPort:        getEnv("SERVER_PORT", "8090"),
+		ServerPort:        resolvePort(),
 		DatabaseURL:       getEnv("DATABASE_URL", "postgres://finance:finance@localhost:5432/finance?sslmode=disable"),
 		Env:               getEnv("ENV", "development"),
 		DBMaxOpenConns:    getEnvAsInt("DB_MAX_OPEN_CONNS", 25),
 		DBMaxIdleConns:    getEnvAsInt("DB_MAX_IDLE_CONNS", 5),
 		DBConnMaxLifetime: getEnvAsInt("DB_CONN_MAX_LIFETIME_MIN", 5),
 	}, nil
+}
+
+func resolvePort() string {
+	if p, ok := os.LookupEnv("PORT"); ok {
+		return p
+	}
+	return getEnv("SERVER_PORT", "8090")
 }
 
 func getEnv(key, fallback string) string {
