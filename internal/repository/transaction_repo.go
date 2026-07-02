@@ -15,12 +15,12 @@ func NewTransactionRepo(db *sql.DB) *TransactionRepo {
 }
 
 func (r *TransactionRepo) Create(t *model.Transaction) error {
-	query := "INSERT INTO transactions (amount, category, date, type) VALUES ($1, $2, $3, $4) RETURNING id"
-	return r.db.QueryRow(query, t.Amount, t.Category, t.Date, t.Type).Scan(&t.ID)
+	query := "INSERT INTO transactions (amount, category, date, type, description, merchant, source, currency) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id"
+	return r.db.QueryRow(query, t.Amount, t.Category, t.Date, t.Type, t.Description, t.Merchant, t.Source, t.Currency).Scan(&t.ID)
 }
 
 func (r *TransactionRepo) ReadAll() ([]model.Transaction, error) {
-	query := "SELECT id, amount, category, date, type FROM transactions"
+	query := "SELECT id, amount, category, date, type, description, merchant, source, currency FROM transactions"
 	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -30,18 +30,22 @@ func (r *TransactionRepo) ReadAll() ([]model.Transaction, error) {
 	var transactions []model.Transaction
 	for rows.Next() {
 		var t model.Transaction
-		if err := rows.Scan(&t.ID, &t.Amount, &t.Category, &t.Date, &t.Type); err != nil {
+		if err := rows.Scan(&t.ID, &t.Amount, &t.Category, &t.Date, &t.Type, &t.Description, &t.Merchant, &t.Source, &t.Currency); err != nil {
 			return nil, err
 		}
 		transactions = append(transactions, t)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return transactions, nil
 }
 
 func (r *TransactionRepo) Update(id int, t *model.Transaction) error {
-	query := "UPDATE transactions SET amount=$1, category=$2, date=$3, type=$4 WHERE id=$5"
-	_, err := r.db.Exec(query, t.Amount, t.Category, t.Date, t.Type, id)
+	query := "UPDATE transactions SET amount=$1, category=$2, date=$3, type=$4, description=$5, merchant=$6, source=$7, currency=$8 WHERE id=$9"
+	_, err := r.db.Exec(query, t.Amount, t.Category, t.Date, t.Type, t.Description, t.Merchant, t.Source, t.Currency, id)
 	return err
 }
 
