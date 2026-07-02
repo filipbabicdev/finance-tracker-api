@@ -2,10 +2,15 @@ package database
 
 import (
 	"database/sql"
+	"embed"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
 )
+
+//go:embed migrations/*.sql
+var embedMigrations embed.FS
 
 type Config struct {
 	DSN             string
@@ -28,20 +33,17 @@ func New(cfg Config) (*sql.DB, error) {
 		return nil, err
 	}
 
-	if err = createTables(db); err != nil {
+	if err = migrate(db); err != nil {
 		return nil, err
 	}
 
 	return db, nil
 }
 
-func createTables(db *sql.DB) error {
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS transactions (
-		id       BIGSERIAL 		PRIMARY KEY,
-		amount   NUMERIC(12, 2) NOT NULL,
-		category TEXT    		NOT NULL,
-		date     TIMESTAMPTZ 	NOT NULL,
-		type     TEXT    		NOT NULL
-	)`)
-	return err
+func migrate(db *sql.DB) error {
+	goose.SetBaseFS(embedMigrations)
+	if err := goose.SetDialect("postgres"); err != nil {
+		return err
+	}
+	return goose.Up(db, "migrations")
 }
