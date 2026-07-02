@@ -44,8 +44,8 @@ func (r *TransactionRepo) ReadAll() ([]model.Transaction, error) {
 }
 
 func (r *TransactionRepo) Update(id int, t *model.Transaction) error {
-	query := "UPDATE transactions SET amount=$1, category=$2, date=$3, type=$4, description=$5, merchant=$6, source=$7, currency=$8 WHERE id=$9"
-	_, err := r.db.Exec(query, t.Amount, t.Category, t.Date, t.Type, t.Description, t.Merchant, t.Source, t.Currency, id)
+	query := "UPDATE transactions SET amount=$1, category=$2, date=$3, type=$4, description=$5, merchant=$6, currency=$7 WHERE id=$8"
+	_, err := r.db.Exec(query, t.Amount, t.Category, t.Date, t.Type, t.Description, t.Merchant, t.Currency, id)
 	return err
 }
 

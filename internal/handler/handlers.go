@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/filipbabicdev/finance-tracker-api/internal/model"
 	"github.com/filipbabicdev/finance-tracker-api/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -19,13 +18,16 @@ func NewTransactionHandler(repo *repository.TransactionRepo) *TransactionHandler
 }
 
 func (h *TransactionHandler) Create(c *gin.Context) {
-	var t model.Transaction
-	if err := c.BindJSON(&t); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+	var req TransactionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := h.repo.Create(&t); err != nil {
+	t := req.ToModel()
+	t.Source = "manual" // Set the source to "manual" for transactions created via the API
+
+	if err := h.repo.Create(t); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create transaction"})
 		return
 	}
@@ -50,13 +52,16 @@ func (h *TransactionHandler) Update(c *gin.Context) {
 		return
 	}
 
-	var t model.Transaction
-	if err := c.BindJSON(&t); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+	var req TransactionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := h.repo.Update(id, &t); err != nil {
+	t := req.ToModel()
+	t.ID = id
+
+	if err := h.repo.Update(id, t); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update transaction"})
 		return
 	}
