@@ -33,6 +33,7 @@ func main() {
 	transactionHandler := handler.NewTransactionHandler(transactionRepo)
 
 	r := gin.Default()
+	_ = r.SetTrustedProxies(nil)
 	handler.SetupRoutes(r, transactionHandler)
 
 	if err := r.Run(":" + cfg.ServerPort); err != nil {
