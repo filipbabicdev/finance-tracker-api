@@ -27,7 +27,7 @@ func (r *TransactionRepo) ReadAll() ([]model.Transaction, error) {
 	}
 	defer rows.Close()
 
-	var transactions []model.Transaction
+	transactions := make([]model.Transaction, 0)
 	for rows.Next() {
 		var t model.Transaction
 		if err := rows.Scan(&t.ID, &t.Amount, &t.Category, &t.Date, &t.Type, &t.Description, &t.Merchant, &t.Source, &t.Currency); err != nil {
