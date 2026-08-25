@@ -66,3 +66,30 @@ func TestRootReturns200AndJSON(t *testing.T) {
 		t.Errorf("expected valid JSON body, got error: %v", err)
 	}
 }
+
+func TestNoRouteReturns404JSON(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.NoRoute(NoRouteHandler())
+
+	req := httptest.NewRequest(http.MethodGet, "/does-not-exist", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("expected 404, got %d", w.Code)
+	}
+
+	ct := w.Header().Get("Content-Type")
+	if !strings.HasPrefix(ct, "application/json") {
+		t.Errorf("expected application/json content type, got %q", ct)
+	}
+
+	var body map[string]interface{}
+	if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
+		t.Fatalf("expected valid JSON body, got error: %v", err)
+	}
+	if _, ok := body["error"]; !ok {
+		t.Errorf("expected body to have an \"error\" key, got: %s", w.Body.String())
+	}
+}
