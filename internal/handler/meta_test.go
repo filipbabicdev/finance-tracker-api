@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,6 +11,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+type fakePinger struct {
+	err error
+}
+
+func (f *fakePinger) PingContext(ctx context.Context) error {
+	return f.err
+}
 
 func TestRootReturnsRegisteredRoutes(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -91,5 +101,49 @@ func TestNoRouteReturns404JSON(t *testing.T) {
 	}
 	if _, ok := body["error"]; !ok {
 		t.Errorf("expected body to have an \"error\" key, got: %s", w.Body.String())
+	}
+}
+
+func TestHealthReturns200WhenDBUp(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.GET("/health", HealthHandler(&fakePinger{err: nil}))
+
+	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d, body: %s", w.Code, w.Body.String())
+	}
+
+	var body map[string]interface{}
+	if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
+		t.Fatalf("expected valid JSON body, got error: %v", err)
+	}
+	if body["status"] != "ok" {
+		t.Errorf("expected status \"ok\", got: %v", body["status"])
+	}
+}
+
+func TestHealthReturns503WhenDBDown(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.GET("/health", HealthHandler(&fakePinger{err: errors.New("connection refused")}))
+
+	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusServiceUnavailable {
+		t.Errorf("expected 503, got %d, body: %s", w.Code, w.Body.String())
+	}
+
+	var body map[string]interface{}
+	if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
+		t.Fatalf("expected valid JSON body, got error: %v", err)
+	}
+	if body["status"] != "error" {
+		t.Errorf("expected status \"error\", got: %v", body["status"])
 	}
 }

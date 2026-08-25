@@ -37,6 +37,7 @@ func main() {
 	handler.SetupRoutes(r, transactionHandler)
 
 	r.GET("/", handler.RootHandler(r, cfg.Env))
+	r.GET("/health", handler.HealthHandler(db))
 	r.NoRoute(handler.NoRouteHandler())
 
 	if err := r.Run(":" + cfg.ServerPort); err != nil {
