@@ -2,7 +2,7 @@
 
 A REST API for tracking personal financial transactions. Built in Go as a portfolio project to demonstrate idiomatic backend patterns (repository pattern, explicit dependency injection, proper money handling).
 
-**Live demo:** https://finance-tracker-api-jsvw.onrender.com/transactions
+**Live demo:** https://finance-tracker-api-jsvw.onrender.com/
 
 > Deployed on Render (Docker) with a managed PostgreSQL database on Neon.
 > Hosted on a free tier, so the first request after idle may take 30–50s to wake (cold start).
@@ -51,6 +51,8 @@ The server starts on `localhost:8090`. Migrations run automatically on startup.
 
 | Method | Endpoint | Request body | Response |
 |--------|----------|--------------|----------|
+| `GET` | `/` | — | Service metadata + registered routes (see example below) |
+| `GET` | `/health` | — | `200` if the database is reachable, `503` otherwise |
 | `GET` | `/transactions` | — | Array of transactions |
 | `POST` | `/transactions` | `{"amount": "49.99", "category": "groceries", "date": "2026-05-20T00:00:00Z", "type": "expense"}` | Created transaction |
 | `PUT` | `/transactions/:id` | `{"amount": "55.00", "category": "groceries", "date": "2026-05-20T00:00:00Z", "type": "expense"}` | Updated transaction |
@@ -62,6 +64,28 @@ Example:
 curl -X POST http://localhost:8090/transactions \
   -H "Content-Type: application/json" \
   -d '{"amount": "49.99", "category": "groceries", "date": "2026-05-20T00:00:00Z", "type": "expense"}'
+```
+
+`GET /` returns service metadata and the full list of currently registered routes (read from the router at request time, so it's always accurate):
+
+```json
+{
+  "service": "finance-tracker-api",
+  "version": "1.0.0",
+  "status": "ok",
+  "environment": "development",
+  "description": "Personal finance tracker REST API",
+  "docs": "https://github.com/filipbabicdev/finance-tracker-api",
+  "timestamp": "2026-08-25T17:15:35Z",
+  "routes": [
+    { "method": "GET", "path": "/" },
+    { "method": "GET", "path": "/health" },
+    { "method": "GET", "path": "/transactions" },
+    { "method": "POST", "path": "/transactions" },
+    { "method": "PUT", "path": "/transactions/:id" },
+    { "method": "DELETE", "path": "/transactions/:id" }
+  ]
+}
 ```
 
 ## Design Decisions
