@@ -36,6 +36,8 @@ func main() {
 	_ = r.SetTrustedProxies(nil)
 	handler.SetupRoutes(r, transactionHandler)
 
+	r.GET("/", handler.RootHandler(r, cfg.Env))
+
 	if err := r.Run(":" + cfg.ServerPort); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
